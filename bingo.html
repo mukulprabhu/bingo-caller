@@ -1,0 +1,479 @@
+html
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>90-Ball Bingo Caller</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-ring {
+      animation: pulse-ring 2s infinite ease-in-out;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 1);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-x-hidden selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Header Navigation -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3 sm:px-6">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-tr from-amber-500 to-rose-500 w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-amber-500/20">
+          90
+        </div>
+        <div>
+          <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-amber-400 via-rose-300 to-indigo-300 bg-clip-text text-transparent">
+            BINGO CALLER
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Standard 90-Ball UK / International Edition</p>
+        </div>
+      </div>
+
+      <!-- Quick Stats & Voice Switcher -->
+      <div class="flex items-center gap-4 text-sm font-semibold">
+        <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5">
+          <button id="voiceToggleBtn" class="flex items-center gap-2 text-slate-300 hover:text-amber-400 transition-colors">
+            <svg id="speakerIcon" class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+            </svg>
+            <span id="voiceStatusText">Voice: ON</span>
+          </button>
+        </div>
+
+        <button id="resetBtn" class="flex items-center gap-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 px-3.5 py-1.5 rounded-xl transition-all hover:border-rose-500/60 active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Reset Game
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Controls & Active Display -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Current Ball Showcase Box -->
+      <div class="relative bg-slate-950/80 border border-slate-800 rounded-3xl p-6 flex flex-col items-center justify-center min-h-[340px] shadow-2xl overflow-hidden group">
+        <!-- Subtle Glow Background -->
+        <div id="bgGlow" class="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-rose-500/5 to-indigo-500/10 opacity-50 transition-opacity duration-700"></div>
+        
+        <div class="relative z-10 w-full flex flex-col items-center">
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase bg-slate-900 border border-slate-800 px-3 py-1 rounded-full mb-4">
+            Current Callout
+          </span>
+
+          <!-- Big Ball Display -->
+          <div id="ballOuter" class="w-44 h-44 sm:w-52 sm:h-52 rounded-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 flex flex-col items-center justify-center shadow-2xl border-4 border-amber-200/50 relative transform transition-all duration-300">
+            <span id="displayGroup" class="text-sm font-black text-amber-950/70 tracking-widest uppercase">
+              READY
+            </span>
+            <span id="displayNum" class="text-6xl sm:text-7xl font-black text-slate-950 tracking-tighter drop-shadow-md">
+              --
+            </span>
+            <span id="nicknameDisplay" class="text-xs font-bold text-amber-950/90 max-w-[140px] text-center px-2 line-clamp-1 mt-0.5">
+              Press Draw to Start
+            </span>
+          </div>
+
+          <!-- Quick Progress Bar -->
+          <div class="w-full mt-6 bg-slate-900 border border-slate-800 rounded-full h-3 p-0.5 relative overflow-hidden">
+            <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full rounded-full transition-all duration-300 w-0"></div>
+          </div>
+          <div class="flex justify-between w-full text-xs font-bold text-slate-400 mt-2 px-1">
+            <span>Drawn: <strong id="drawnCount" class="text-slate-200">0</strong> / 90</span>
+            <span>Remaining: <strong id="remainingCount" class="text-slate-200">90</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Action Controls -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button id="drawNextBtn" class="w-full py-4 px-6 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-lg rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            DRAW NEXT
+          </button>
+
+          <button id="autoPlayBtn" class="w-full py-4 px-6 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-lg rounded-xl border border-slate-700 active:scale-95 transition-all flex items-center justify-center gap-2">
+            <svg id="autoIcon" class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span id="autoPlayText">AUTO-PLAY</span>
+          </button>
+        </div>
+
+        <!-- Auto Play Speed Slider -->
+        <div class="flex flex-col gap-1.5 pt-2 border-t border-slate-800/80">
+          <div class="flex justify-between text-xs font-semibold text-slate-400">
+            <span>Auto Speed:</span>
+            <span id="speedLabel" class="text-amber-400 font-bold">3.0s / draw</span>
+          </div>
+          <input type="range" id="speedSlider" min="1" max="8" step="0.5" value="3" class="w-full accent-amber-500 bg-slate-900 cursor-pointer h-2 rounded-lg">
+        </div>
+      </div>
+
+      <!-- Draw History Bar -->
+      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-2">
+        <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <span>Recent Calls</span>
+          <span class="text-slate-500 font-normal text-[11px]">Latest first</span>
+        </div>
+        <div id="recentCallsContainer" class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 min-h-[52px]">
+          <span class="text-slate-500 text-xs italic">No numbers drawn yet.</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Full 1-90 Interactive Grid -->
+    <div class="lg:col-span-7 bg-slate-950/80 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+          <span>Bingo Master Board</span>
+          <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-400 border border-slate-800">1 - 90</span>
+        </h2>
+        <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+          <span class="inline-block w-3 h-3 rounded-full bg-amber-400 border border-amber-200"></span> Called
+          <span class="inline-block w-3 h-3 rounded-full bg-rose-500 border border-rose-300 ml-2"></span> Latest
+        </div>
+      </div>
+
+      <!-- 90 Numbers Display Grid (9 Columns for 1-90 breakdown) -->
+      <div class="flex-1 overflow-x-auto custom-scrollbar">
+        <div id="bingoBoard" class="grid grid-cols-10 gap-1.5 min-w-[550px] p-1">
+          <!-- Dynamically populated 1 to 90 buttons -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal / Confirmation Dialog for Reset -->
+  <dialog id="resetModal" class="bg-slate-900 text-slate-100 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl backdrop:bg-slate-950/80">
+    <h3 class="text-xl font-black text-rose-400 mb-2">Reset Game?</h3>
+    <p class="text-slate-300 text-sm mb-6">Are you sure you want to clear all drawn numbers and restart the 90-ball session?</p>
+    <div class="flex justify-end gap-3">
+      <button id="cancelResetBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl">Cancel</button>
+      <button id="confirmResetBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-rose-600/30">Reset Now</button>
+    </div>
+  </dialog>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // Standard UK 90-Ball Nicknames / Traditional Bingo Lingo
+    const BINGO_NICKNAMES = {
+      1: "Kelly's Eye", 2: "One Little Duck", 3: "Cup of Tea", 4: "Knock at the Door", 5: "Man Alive",
+      6: "Half a Dozen", 7: "Lucky Seven", 8: "Garden Gate", 9: "Doctor's Orders", 10: "Prime Minister's Den",
+      11: "Legs Eleven", 12: "One Dozen", 13: "Unlucky for Some", 14: "Valentine's Day", 15: "Young and Keen",
+      16: "Sweet Sixteen", 17: "Dancing Queen", 18: "Coming of Age", 19: "Goodbye Teens", 20: "One Score",
+      21: "Royal Salute", 22: "Two Little Ducks", 23: "The Lord is My Shepherd", 24: "Two Dozen", 25: "Duck and Dive",
+      26: "Pick and Mix", 27: "Gateway to Heaven", 28: "Over a Dozen", 29: "Rise and Shine", 30: "Dirty Gertie",
+      31: "Get Up and Run", 32: "Buckle My Shoe", 33: "Dirty Knee", 34: "Ask for More", 35: "Jump and Jive",
+      36: "Three Dozen", 37: "More than 11", 38: "Christmas Cake", 39: "Steps", 40: "Life Begins",
+      41: "Time for Fun", 42: "Winnie the Pooh", 43: "Down on Your Knees", 44: "Droopy Drawers", 45: "Halfway There",
+      46: "Up to the Tricks", 47: "Four and Seven", 48: "Four Dozen", 49: "PC 49", 50: "Half a Century",
+      51: "Tweak of the Thumb", 52: "Danny La Rue", 53: "Stuck in the Tree", 54: "Clean the Floor", 55: "Snakes Alive",
+      56: "Was She Worth It?", 57: "Heinz Varieties", 58: "Make Them Wait", 59: "Brighton Line", 60: "Five Dozen",
+      61: "Bakers Bun", 62: "Turn on the Screw", 63: "Tickle Me 63", 64: "Red Raw", 65: "Old Age Pension",
+      66: "Clickety Click", 67: "Made in Heaven", 68: "Saving Grace", 69: "Either Way Up", 70: "Three Score and Ten",
+      71: "Bang on the Drum", 72: "Six Dozen", 73: "Queen Bee", 74: "Candy Store", 75: "Stiff Breeze",
+      76: "Trombones", 77: "Sunset Strip", 78: "Heavens Gate", 79: "One More Time", 80: "Eight Times Ten",
+      81: "Stop and Run", 82: "Straight Line", 83: "Time for Tea", 84: "Seven Dozen", 85: "Staying Alive",
+      86: "Between the Sticks", 87: "Torquay in Devon", 88: "Two Fat Ladies", 89: "Nearly There", 90: "Top of the Shop"
+    };
+
+    // State Variables
+    let uncalledPool = [];
+    let history = [];
+    let autoInterval = null;
+    let voiceEnabled = true;
+
+    // DOM Elements
+    const bingoBoard = document.getElementById('bingoBoard');
+    const displayNum = document.getElementById('displayNum');
+    const displayGroup = document.getElementById('displayGroup');
+    const nicknameDisplay = document.getElementById('nicknameDisplay');
+    const ballOuter = document.getElementById('ballOuter');
+    const drawnCount = document.getElementById('drawnCount');
+    const remainingCount = document.getElementById('remainingCount');
+    const progressBar = document.getElementById('progressBar');
+    const recentCallsContainer = document.getElementById('recentCallsContainer');
+    const drawNextBtn = document.getElementById('drawNextBtn');
+    const autoPlayBtn = document.getElementById('autoPlayBtn');
+    const autoPlayText = document.getElementById('autoPlayText');
+    const autoIcon = document.getElementById('autoIcon');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedLabel = document.getElementById('speedLabel');
+    const voiceToggleBtn = document.getElementById('voiceToggleBtn');
+    const voiceStatusText = document.getElementById('voiceStatusText');
+    const speakerIcon = document.getElementById('speakerIcon');
+    const resetBtn = document.getElementById('resetBtn');
+    const resetModal = document.getElementById('resetModal');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    const confirmResetBtn = document.getElementById('confirmResetBtn');
+
+    // Helper: Determine Range Group Text for 90-ball layout (e.g. 1-9, 10-19... 80-90)
+    function getGroupLabel(num) {
+      if (num >= 1 && num <= 9) return "Single Digits (1-9)";
+      if (num >= 10 && num <= 19) return "10s Range (10-19)";
+      if (num >= 20 && num <= 29) return "20s Range (20-29)";
+      if (num >= 30 && num <= 39) return "30s Range (30-39)";
+      if (num >= 40 && num <= 49) return "40s Range (40-49)";
+      if (num >= 50 && num <= 59) return "50s Range (50-59)";
+      if (num >= 60 && num <= 69) return "60s Range (60-69)";
+      if (num >= 70 && num <= 79) return "70s Range (70-79)";
+      return "80s Range (80-90)";
+    }
+
+    // Initialize Game Board Grid & Pool
+    function initGame() {
+      stopAutoPlay();
+      uncalledPool = Array.from({ length: 90 }, (_, i) => i + 1);
+      history = [];
+
+      // Reset Board HTML
+      bingoBoard.innerHTML = '';
+      for (let i = 1; i <= 90; i++) {
+        const cell = document.createElement('div');
+        cell.id = `cell-${i}`;
+        cell.className = "flex flex-col items-center justify-center p-2 rounded-xl bg-slate-900 border border-slate-800/80 text-slate-500 font-bold text-sm transition-all duration-300 select-none shadow-inner";
+        cell.innerHTML = `
+          <span>${i}</span>
+        `;
+        bingoBoard.appendChild(cell);
+      }
+
+      // Reset Showcase UI
+      displayNum.textContent = "--";
+      displayGroup.textContent = "READY";
+      nicknameDisplay.textContent = "Press Draw to Start";
+      ballOuter.className = "w-44 h-44 sm:w-52 sm:h-52 rounded-full bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 flex flex-col items-center justify-center shadow-2xl border-4 border-amber-200/50 relative transform transition-all duration-300";
+
+      // Update Counts
+      updateStats();
+      renderRecentCalls();
+    }
+
+    // Update Counter Stats & Progress Bar
+    function updateStats() {
+      const drawn = history.length;
+      const remaining = uncalledPool.length;
+      drawnCount.textContent = drawn;
+      remainingCount.textContent = remaining;
+      const percent = (drawn / 90) * 100;
+      progressBar.style.width = `${percent}%`;
+    }
+
+    // Draw Next Number
+    function drawNext() {
+      if (uncalledPool.length === 0) {
+        stopAutoPlay();
+        speakCallout("Game Over! All 90 numbers have been called.");
+        alertMessage("Game Complete! All 90 numbers have been called.");
+        return;
+      }
+
+      // Random Draw without replacement
+      const randomIndex = Math.floor(Math.random() * uncalledPool.length);
+      const drawnNum = uncalledPool.splice(randomIndex, 1)[0];
+      history.unshift(drawnNum);
+
+      // Update Showcase with animation reset
+      ballOuter.classList.remove('scale-105', 'rotate-3');
+      void ballOuter.offsetWidth; // Trigger reflow
+      ballOuter.classList.add('scale-105', 'rotate-3');
+
+      displayNum.textContent = drawnNum;
+      displayGroup.textContent = getGroupLabel(drawnNum);
+      nicknameDisplay.textContent = BINGO_NICKNAMES[drawnNum] || "";
+
+      // Speech Callout
+      const calloutText = `${drawnNum}. ${BINGO_NICKNAMES[drawnNum] || ''}`;
+      speakCallout(calloutText);
+
+      // Update Board Styling
+      updateBoardCells(drawnNum);
+
+      // Update Stats & History Log
+      updateStats();
+      renderRecentCalls();
+    }
+
+    // Update Master Board Visual State
+    function updateBoardCells(latestNum) {
+      history.forEach((num, index) => {
+        const cell = document.getElementById(`cell-${num}`);
+        if (!cell) return;
+
+        if (index === 0) {
+          // Latest Drawn Ball Highlight
+          cell.className = "flex flex-col items-center justify-center p-2 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-500 text-white font-extrabold text-base shadow-lg shadow-rose-500/30 border-2 border-rose-300 transform scale-105 z-10 animate-pulse";
+        } else {
+          // Previously Drawn Balls
+          cell.className = "flex flex-col items-center justify-center p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-slate-950 font-black text-sm shadow-md border border-amber-300 opacity-90";
+        }
+      });
+    }
+
+    // Render Recent Calls History Carousel
+    function renderRecentCalls() {
+      if (history.length === 0) {
+        recentCallsContainer.innerHTML = `<span class="text-slate-500 text-xs italic">No numbers drawn yet.</span>`;
+        return;
+      }
+
+      recentCallsContainer.innerHTML = history.slice(0, 15).map((num, i) => `
+        <div class="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${i === 0 ? 'bg-rose-500 text-white font-black scale-105 border border-rose-300 shadow-md' : 'bg-slate-900 border border-slate-800 text-amber-400 font-bold'} text-sm transition-all">
+          <span>${num}</span>
+          ${i === 0 ? '<span class="text-[10px] uppercase bg-rose-950/60 text-rose-200 px-1 rounded">NEW</span>' : ''}
+        </div>
+      `).join('');
+    }
+
+    // Text to Speech
+    function speakCallout(text) {
+      if (!voiceEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel(); // Interrupt previous speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Auto Play Logic
+    function toggleAutoPlay() {
+      if (autoInterval) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      if (uncalledPool.length === 0) return;
+      const intervalSec = parseFloat(speedSlider.value) * 1000;
+      autoInterval = setInterval(drawNext, intervalSec);
+      
+      autoPlayBtn.classList.remove('bg-slate-800', 'text-slate-100');
+      autoPlayBtn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-500', 'shadow-lg', 'shadow-indigo-600/30');
+      autoPlayText.textContent = "STOP AUTO";
+      drawNext(); // Immediate draw on click
+    }
+
+    function stopAutoPlay() {
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+      }
+      autoPlayBtn.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-500', 'shadow-lg', 'shadow-indigo-600/30');
+      autoPlayBtn.classList.add('bg-slate-800', 'text-slate-100');
+      autoPlayText.textContent = "AUTO-PLAY";
+    }
+
+    // Custom Alert Notification
+    function alertMessage(msg) {
+      const banner = document.createElement('div');
+      banner.className = "fixed bottom-6 right-6 bg-slate-900 border border-amber-500/50 text-amber-300 px-5 py-3 rounded-xl shadow-2xl z-50 font-bold text-sm flex items-center gap-3 animate-bounce";
+      banner.innerHTML = `
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>${msg}</span>
+      `;
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 4000);
+    }
+
+    // Event Listeners
+    drawNextBtn.addEventListener('click', () => {
+      stopAutoPlay();
+      drawNext();
+    });
+
+    autoPlayBtn.addEventListener('click', toggleAutoPlay);
+
+    speedSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value).toFixed(1);
+      speedLabel.textContent = `${val}s / draw`;
+      if (autoInterval) {
+        stopAutoPlay();
+        startAutoPlay();
+      }
+    });
+
+    voiceToggleBtn.addEventListener('click', () => {
+      voiceEnabled = !voiceEnabled;
+      if (voiceEnabled) {
+        voiceStatusText.textContent = "Voice: ON";
+        speakerIcon.classList.remove('text-slate-500');
+        speakerIcon.classList.add('text-amber-400');
+        speakCallout("Voice enabled");
+      } else {
+        voiceStatusText.textContent = "Voice: OFF";
+        speakerIcon.classList.remove('text-amber-400');
+        speakerIcon.classList.add('text-slate-500');
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    // Modal Reset Handlers
+    resetBtn.addEventListener('click', () => {
+      resetModal.showModal();
+    });
+
+    cancelResetBtn.addEventListener('click', () => {
+      resetModal.close();
+    });
+
+    confirmResetBtn.addEventListener('click', () => {
+      resetModal.close();
+      initGame();
+      alertMessage("Game reset successfully! All 90 balls returned to caller.");
+    });
+
+    // Keyboard Shortcuts (Space bar to draw)
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        stopAutoPlay();
+        drawNext();
+      }
+    });
+
+    // Initialize on window load
+    window.onload = initGame;
+  </script>
+</body>
+</html>
